@@ -43,6 +43,14 @@
     }
   });
 
+  // Align Chinese opening brackets with the text block when Markdown headings
+  // begin with 《. Titles rendered by templates receive the class server-side.
+  $('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6').each(function () {
+    if ($(this).text().trim().charAt(0) === '《') {
+      $(this).addClass('title--cjk-opening');
+    }
+  });
+
   // Avatar
   var $mask = $('.about-me-mask');
   $('.avatar').on('click', function () {
@@ -75,5 +83,52 @@
         scrollTop: 0
     }, 300);
 });
+
+  // Theme toggle
+  var $html = $('html');
+  var $themeToggle = $('.theme-toggle');
+  var themeStorageKey = 'grillme-theme';
+
+  function getSavedTheme() {
+    try {
+      return localStorage.getItem(themeStorageKey);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveTheme(theme) {
+    try {
+      localStorage.setItem(themeStorageKey, theme);
+    } catch (error) {
+      // Private browsing modes may disallow localStorage.
+    }
+  }
+
+  function updateThemeToggle(theme) {
+    var isDark = theme === 'dark';
+    var action = isDark ? '浅色' : '暗色';
+
+    $themeToggle.attr('aria-pressed', isDark ? 'true' : 'false');
+    $themeToggle.attr('aria-label', '切换' + action + '模式');
+    $themeToggle.attr('title', '切换' + action + '模式');
+  }
+
+  function applyTheme(theme, persist) {
+    var normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+
+    $html.attr('data-theme', normalizedTheme);
+    updateThemeToggle(normalizedTheme);
+
+    if (persist) saveTheme(normalizedTheme);
+  }
+
+  if ($themeToggle.length) {
+    applyTheme($html.attr('data-theme') || getSavedTheme() || 'dark', false);
+
+    $themeToggle.on('click', function () {
+      applyTheme($html.attr('data-theme') === 'dark' ? 'light' : 'dark', true);
+    });
+  }
 
 })(jQuery);
